@@ -1,0 +1,9 @@
+BIBLIOTECA DE ICONES: 
+https://lucide.dev/
+npm install lucide-react
+
+gera id aleatorios
+https://www.npmjs.com/package/uuid
+
+API mais utilizada
+https://jsonplaceholder.typicode.com/
