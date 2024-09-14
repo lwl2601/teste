@@ -1,35 +1,29 @@
-import { useEffect, useState } from "react";
+// src/App.jsx
+import React from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import AddTask from "./components/AddTask";
 import Tasks from "./components/Tasks";
-import { v4 as uuidv4 } from "uuid"; // Renomeando para uuidv4 para evitar confusão
+import Login from "./components/Login";
+import NotFound from "./components/NotFound";
+import ErrorBoundary from "./pages/ErrorBoundary";
+import { v4 as uuidv4 } from "uuid";
 
-function App() {
-  const [tasks, setTasks] = useState(
+function Home() {
+  const [tasks, setTasks] = React.useState(
     JSON.parse(localStorage.getItem("tasks")) || []
   );
+  const navigate = useNavigate();
 
-  useEffect(() => {
+  React.useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
 
-
-  // USO DE API
-  //ESSA AÇÃO É SÓ UTILIZADA UMA VEZ SÓ QUANDO O USUARIO ENTRAR
-  // useEffect(() => {
-  //   async function fetchTasks(){
-  //     //CHAMAR A API
-  //   const response = await fetch('https://jsonplaceholder.typicode.com/todos?_limit=10',
-  //     {
-  //   method: 'GET'
-  //     }
-  //   );
-  //   //PEGAR OS DADOS QUE ELA RETORNA
-  //   const data = await response.json();
-  //   //ARMAZENAR/PERSISTIR ESSES DADOS NO STATE
-  //   setTasks(data);
-  //   }
-  //   fetchTasks();
-  //   },[])
+  React.useEffect(() => {
+    const isAuthenticated = localStorage.getItem("isAuthenticated");
+    if (!isAuthenticated) {
+      navigate("/login");
+    }
+  }, [navigate]);
 
   function onTaskClick(taskId) {
     const newTasks = tasks.map((task) => {
@@ -41,12 +35,16 @@ function App() {
     setTasks(newTasks);
   }
 
-  function deletedTasksClick(taskId) {
+  function deleteTaskClick(taskId) {
     const newTasks = tasks.filter((task) => task.id !== taskId);
     setTasks(newTasks);
   }
 
   function onAddTaskSubmit(title, description) {
+    if (tasks.length >= 7) {
+      return alert("Você já atingiu o limite máximo de 7 tarefas.");
+    }
+
     if (!title.trim() || !description.trim()) {
       return alert("Preencha o título e a descrição da tarefa.");
     }
@@ -61,6 +59,11 @@ function App() {
     setTasks([...tasks, newTask]);
   }
 
+  function handleLogout() {
+    localStorage.removeItem("isAuthenticated");
+    navigate("/login");
+  }
+
   return (
     <div className="w-screen h-screen bg-slate-800 flex flex-col items-center justify-center p-8">
       <div className="w-[500px] space-y-4">
@@ -71,10 +74,28 @@ function App() {
         <Tasks
           tasks={tasks}
           onTaskClick={onTaskClick}
-          deleteTaskClick={deletedTasksClick}
+          onDeleteTaskClick={deleteTaskClick}
         />
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white py-2 px-4 rounded-md mt-4 hover:bg-red-600"
+        >
+          Sair
+        </button>
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Home />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }
 
